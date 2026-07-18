@@ -1,5 +1,5 @@
 -- CẤU HÌNH KEY (Thay đổi key của mày tại đây)
-local CORRECT_KEY = "ZYNTRIX-SCRIPT"
+local CORRECT_KEY = "ZYNTRIX"
 
 local P = game:GetService("Players")
 local TS = game:GetService("TweenService")

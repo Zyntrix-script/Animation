@@ -1,10 +1,10 @@
 --========================================================--
---        ZYNTRIX VIP PRIME • ANIMATION HUB              --
---        FULL UI • NO KEY • MOBILE • DRAGGABLE          --
+--        ZYNTRIX VIP PRIME • ANIMATION HUB
+--        FULL UI • NO KEY • MOBILE • DRAGGABLE
+--        RESPAWN FIX + ANTI DUPLICATE UI
 --========================================================--
 
 local Players = game:GetService("Players")
-local TweenService = game:GetService("TweenService")
 
 local LP = Players.LocalPlayer
 local PG = LP:WaitForChild("PlayerGui")
@@ -34,23 +34,38 @@ local CONFIG = {
 }
 
 --========================================================--
--- CLEAN OLD UI
+-- ANTI DUPLICATE
 --========================================================--
 
-local Old = PG:FindFirstChild("ZYNTRIX_VIP_PRIME")
-if Old then
-    Old:Destroy()
+local GUI_NAME = "ZYNTRIX_VIP_PRIME"
+
+-- Xóa tất cả UI cũ cùng tên
+for _, obj in ipairs(PG:GetChildren()) do
+    if obj.Name == GUI_NAME then
+        pcall(function()
+            obj:Destroy()
+        end)
+    end
 end
+
+-- Xóa UI cũ nếu executor/phiên trước đặt ở CoreGui
+pcall(function()
+    local CoreGui = game:GetService("CoreGui")
+
+    for _, obj in ipairs(CoreGui:GetChildren()) do
+        if obj.Name == GUI_NAME then
+            pcall(function()
+                obj:Destroy()
+            end)
+        end
+    end
+end)
 
 --========================================================--
 -- PACK DATABASE
 --========================================================--
 
 local PACKS = {
-
-    --====================================================
-    -- ADIDAS
-    --====================================================
 
     ["Adidas Aura"] = {
         Walk = 83842218823011,
@@ -87,10 +102,6 @@ local PACKS = {
         Idle1 = 18537376492,
         Idle2 = 18537371272
     },
-
-    --====================================================
-    -- CLASSIC PACKS
-    --====================================================
 
     ["Astronaut"] = {
         Walk = 10921046031,
@@ -283,10 +294,6 @@ local PACKS = {
         Idle2 = 10921345304
     },
 
-    --====================================================
-    -- OTHER OFFICIAL PACKS
-    --====================================================
-
     ["NFL"] = {
         Walk = 110358958299415,
         Run = 117333533048078,
@@ -346,10 +353,6 @@ local PACKS = {
         Idle2 = 132238900951109
     },
 
-    --====================================================
-    -- NEW VERIFIED-NAME PACKS
-    --====================================================
-
     ["Glitch Animation Pack Roblox"] = {
         Walk = 70532084598346,
         Run = 133291236719695,
@@ -391,31 +394,24 @@ local PACKS = {
 --========================================================--
 
 local GUI = Instance.new("ScreenGui")
-GUI.Name = "ZYNTRIX_VIP_PRIME"
+GUI.Name = GUI_NAME
 GUI.ResetOnSpawn = false
 GUI.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 GUI.Parent = PG
 
 --========================================================--
--- MAIN FRAME
+-- MAIN
 --========================================================--
 
 local Main = Instance.new("Frame")
 Main.Name = "Main"
-Main.Size = UDim2.new(
-    0,
-    CONFIG.Width,
-    0,
-    CONFIG.Height
-)
-
+Main.Size = UDim2.new(0, CONFIG.Width, 0, CONFIG.Height)
 Main.Position = UDim2.new(
     0.5,
     -CONFIG.Width / 2,
     0.5,
     -CONFIG.Height / 2
 )
-
 Main.BackgroundColor3 = CONFIG.Background
 Main.BackgroundTransparency = CONFIG.Transparency
 Main.BorderSizePixel = 0
@@ -477,7 +473,7 @@ Count.BackgroundColor3 = Color3.fromRGB(0,35,45)
 Count.TextColor3 = CONFIG.Cyan
 Count.Font = Enum.Font.GothamBold
 Count.TextSize = 9
-Count.Text = tostring(0) .. " PACK"
+Count.Text = "0 PACK"
 Count.Parent = Header
 
 local CountCorner = Instance.new("UICorner")
@@ -485,7 +481,7 @@ CountCorner.CornerRadius = UDim.new(0,6)
 CountCorner.Parent = Count
 
 --========================================================--
--- SEARCH BOX
+-- SEARCH
 --========================================================--
 
 local Search = Instance.new("TextBox")
@@ -547,11 +543,15 @@ Layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
 end)
 
 --========================================================--
--- ANIMATION FUNCTIONS
+-- STATE
 --========================================================--
 
 local CurrentPack = nil
 local Buttons = {}
+
+--========================================================--
+-- ANIMATION HELPERS
+--========================================================--
 
 local function setAnimation(obj,id)
     if obj and id then
@@ -566,7 +566,7 @@ local function findAnimation(folder,...)
         return nil
     end
 
-    for i = 1,select("#",...) do
+    for i = 1, select("#",...) do
         local Name = select(i,...)
         local Obj = folder:FindFirstChild(Name)
 
@@ -614,7 +614,43 @@ local function applyFolder(animate,folderName,id,names)
     setAnimation(Obj,id)
 end
 
-local function applyPack(name)
+--========================================================--
+-- WAIT FOR ANIMATE
+--========================================================--
+
+local function getAnimate(Character)
+    if not Character then
+        return nil
+    end
+
+    -- Chờ tối đa 8 giây
+    local Animate = Character:FindFirstChild("Animate")
+
+    if Animate then
+        return Animate
+    end
+
+    local Start = os.clock()
+
+    while Character.Parent and os.clock() - Start < 8 do
+
+        Animate = Character:FindFirstChild("Animate")
+
+        if Animate then
+            return Animate
+        end
+
+        task.wait(0.1)
+    end
+
+    return nil
+end
+
+--========================================================--
+-- APPLY PACK
+--========================================================--
+
+local function applyPack(name, isRespawn)
 
     local Pack = PACKS[name]
 
@@ -624,18 +660,17 @@ local function applyPack(name)
 
     local Character = LP.Character
 
-    if not Character then
+    if not Character or not Character.Parent then
         return false
     end
 
-    local Animate = Character:FindFirstChild("Animate")
+    local Animate = getAnimate(Character)
 
     if not Animate then
         return false
     end
 
-    local Humanoid =
-        Character:FindFirstChildOfClass("Humanoid")
+    local Humanoid = Character:FindFirstChildOfClass("Humanoid")
 
     if Humanoid then
         for _,Track in ipairs(
@@ -647,7 +682,10 @@ local function applyPack(name)
         end
     end
 
+    --====================================================--
     -- WALK
+    --====================================================--
+
     applyFolder(
         Animate,
         "walk",
@@ -655,7 +693,10 @@ local function applyPack(name)
         {"WalkAnim","walk","RunAnim"}
     )
 
+    --====================================================--
     -- RUN
+    --====================================================--
+
     applyFolder(
         Animate,
         "run",
@@ -663,7 +704,10 @@ local function applyPack(name)
         {"RunAnim","run","WalkAnim"}
     )
 
+    --====================================================--
     -- JUMP
+    --====================================================--
+
     applyFolder(
         Animate,
         "jump",
@@ -671,7 +715,10 @@ local function applyPack(name)
         {"JumpAnim","jump"}
     )
 
+    --====================================================--
     -- FALL
+    --====================================================--
+
     applyFolder(
         Animate,
         "fall",
@@ -679,7 +726,10 @@ local function applyPack(name)
         {"FallAnim","fall"}
     )
 
+    --====================================================--
     -- CLIMB
+    --====================================================--
+
     applyFolder(
         Animate,
         "climb",
@@ -687,7 +737,10 @@ local function applyPack(name)
         {"ClimbAnim","climb"}
     )
 
+    --====================================================--
     -- SWIM
+    --====================================================--
+
     applyFolder(
         Animate,
         "swim",
@@ -695,7 +748,10 @@ local function applyPack(name)
         {"Swim","SwimAnim","swim"}
     )
 
+    --====================================================--
     -- SWIM IDLE
+    --====================================================--
+
     applyFolder(
         Animate,
         "swimidle",
@@ -703,48 +759,65 @@ local function applyPack(name)
         {"SwimIdle","SwimIdleAnim","swimidle"}
     )
 
+    --====================================================--
     -- IDLE
+    --====================================================--
+
     local IdleFolder = Animate:FindFirstChild("idle")
 
     if IdleFolder then
 
-        local Idle1 =
-            makeAnimation(
-                IdleFolder,
-                "Animation1"
-            )
+        local Idle1 = makeAnimation(
+            IdleFolder,
+            "Animation1"
+        )
 
-        local Idle2 =
-            makeAnimation(
-                IdleFolder,
-                "Animation2"
-            )
+        local Idle2 = makeAnimation(
+            IdleFolder,
+            "Animation2"
+        )
 
         if Pack.Idle1 then
-            setAnimation(Idle1,Pack.Idle1)
+            setAnimation(
+                Idle1,
+                Pack.Idle1
+            )
         end
 
         if Pack.Idle2 then
-            setAnimation(Idle2,Pack.Idle2)
+            setAnimation(
+                Idle2,
+                Pack.Idle2
+            )
         elseif Pack.Idle1 then
-            setAnimation(Idle2,Pack.Idle1)
+            setAnimation(
+                Idle2,
+                Pack.Idle1
+            )
         end
     end
 
-    -- RESTART ANIMATE
-    pcall(function()
-        Animate.Disabled = true
-        task.wait(0.08)
-        Animate.Disabled = false
-    end)
+    --====================================================--
+    -- SAVE CURRENT PACK
+    --====================================================--
 
     CurrentPack = name
+
+    --====================================================--
+    -- RESTART ANIMATE
+    --====================================================--
+
+    pcall(function()
+        Animate.Disabled = true
+        task.wait(0.05)
+        Animate.Disabled = false
+    end)
 
     return true
 end
 
 --========================================================--
--- BUTTON STATE
+-- REFRESH BUTTONS
 --========================================================--
 
 local function refreshButtons()
@@ -757,22 +830,24 @@ local function refreshButtons()
             Active and "ON" or "OFF"
 
         Data.Button.TextColor3 =
-            Active and CONFIG.Green
+            Active
+            and CONFIG.Green
             or CONFIG.Red
 
         Data.Stroke.Color =
-            Active and CONFIG.Green
+            Active
+            and CONFIG.Green
             or CONFIG.Red
 
         Data.CardStroke.Color =
-            Active and CONFIG.Cyan
+            Active
+            and CONFIG.Cyan
             or Color3.fromRGB(35,45,60)
-
     end
 end
 
 --========================================================--
--- CREATE PACK BUTTON
+-- CREATE BUTTON
 --========================================================--
 
 local function createPackButton(Name)
@@ -827,7 +902,8 @@ local function createPackButton(Name)
     Buttons[Name] = {
         Button = Button,
         Stroke = Stroke,
-        CardStroke = CardStroke
+        CardStroke = CardStroke,
+        Card = Card
     }
 
     Button.MouseButton1Click:Connect(function()
@@ -836,15 +912,14 @@ local function createPackButton(Name)
             return
         end
 
-        if applyPack(Name) then
+        if applyPack(Name,false) then
             refreshButtons()
         end
-
     end)
 end
 
 --========================================================--
--- SORT + LOAD PACKS
+-- LOAD PACKS
 --========================================================--
 
 local Names = {}
@@ -874,8 +949,7 @@ refreshButtons()
 
 Search:GetPropertyChangedSignal("Text"):Connect(function()
 
-    local Query =
-        Search.Text:lower()
+    local Query = Search.Text:lower()
 
     for Name,Data in pairs(Buttons) do
 
@@ -883,18 +957,12 @@ Search:GetPropertyChangedSignal("Text"):Connect(function()
             Query == ""
             or Name:lower():find(Query,1,true)
 
-        Data.CardStroke.Parent.Visible = Show
-        Data.Button.Parent.Visible = Show
-
-        local Card = Data.Button.Parent
-
-        Card.Visible = Show
+        Data.Card.Visible = Show
     end
-
 end)
 
 --========================================================--
--- MINI HIDE BUTTON
+-- MINI BUTTON
 --========================================================--
 
 local Mini = Instance.new("TextButton")
@@ -928,32 +996,166 @@ Mini.MouseButton1Click:Connect(function()
         Main.Visible
         and "VIP"
         or "OPEN"
-
 end)
 
 --========================================================--
--- RESPAWN REAPPLY
+-- RESPAWN SYSTEM
 --========================================================--
 
-LP.CharacterAdded:Connect(function()
+local RespawnToken = 0
 
-    task.wait(1)
+LP.CharacterAdded:Connect(function(Character)
 
-    if CurrentPack then
+    RespawnToken += 1
 
-        if applyPack(CurrentPack) then
-            refreshButtons()
-        end
+    local MyToken = RespawnToken
 
+    -- Giữ CurrentPack cũ
+    local SavedPack = CurrentPack
+
+    if not SavedPack then
+        return
     end
 
+    -- Chờ character load hoàn toàn
+    task.spawn(function()
+
+        -- Đợi Humanoid
+        local Humanoid =
+            Character:WaitForChild(
+                "Humanoid",
+                8
+            )
+
+        if MyToken ~= RespawnToken then
+            return
+        end
+
+        -- Đợi Animate
+        local Animate = nil
+
+        for _ = 1,80 do
+
+            if MyToken ~= RespawnToken then
+                return
+            end
+
+            if not Character.Parent then
+                return
+            end
+
+            Animate = Character:FindFirstChild("Animate")
+
+            if Animate then
+                break
+            end
+
+            task.wait(0.1)
+        end
+
+        if not Animate then
+            return
+        end
+
+        --================================================--
+        -- APPLY LẦN 1
+        --================================================--
+
+        if CurrentPack == SavedPack then
+            applyPack(
+                SavedPack,
+                true
+            )
+        end
+
+        refreshButtons()
+
+        --================================================--
+        -- APPLY LẠI
+        -- Roblox đôi lúc ghi đè Animate sau spawn
+        --================================================--
+
+        for _,delayTime in ipairs({
+            0.15,
+            0.40,
+            0.80,
+            1.30
+        }) do
+
+            task.wait(delayTime)
+
+            if MyToken ~= RespawnToken then
+                return
+            end
+
+            if not Character.Parent then
+                return
+            end
+
+            if CurrentPack == SavedPack then
+                applyPack(
+                    SavedPack,
+                    true
+                )
+
+                refreshButtons()
+            end
+        end
+    end)
 end)
 
 --========================================================--
--- HEADER DRAG SUPPORT
+-- ANIMATE REPLACEMENT PROTECTION
+--========================================================--
+
+LP.CharacterAdded:Connect(function(Character)
+
+    task.spawn(function()
+
+        -- Nếu game tạo Animate trễ
+        local Animate = Character:WaitForChild(
+            "Animate",
+            10
+        )
+
+        if not Animate then
+            return
+        end
+
+        -- Nếu Animate bị destroy rồi tạo lại
+        Animate.AncestryChanged:Connect(function(_,Parent)
+
+            if Parent == nil then
+                return
+            end
+
+            if CurrentPack then
+
+                task.delay(0.15,function()
+
+                    if LP.Character == Character
+                    and Character.Parent
+                    and CurrentPack then
+
+                        applyPack(
+                            CurrentPack,
+                            true
+                        )
+
+                        refreshButtons()
+                    end
+                end)
+            end
+        end)
+    end)
+end)
+
+--========================================================--
+-- HEADER DRAG
 --========================================================--
 
 Header.Active = true
+
 Header.InputBegan:Connect(function(input)
 
     if input.UserInputType ==
@@ -963,7 +1165,6 @@ Header.InputBegan:Connect(function(input)
 
         Main.Draggable = true
     end
-
 end)
 
 --========================================================--
@@ -974,5 +1175,7 @@ print(
     "[ZYNTRIX VIP PRIME]",
     "Loaded",
     #Names,
-    "Animation Packs"
+    "Animation Packs",
+    "| Respawn Fix: ON",
+    "| Anti-Duplicate: ON"
 )

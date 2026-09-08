@@ -1,259 +1,978 @@
--- CẤU HÌNH KEY (Thay đổi key của mày tại đây)
-local CORRECT_KEY = "2011"
+--========================================================--
+--        ZYNTRIX VIP PRIME • ANIMATION HUB              --
+--        FULL UI • NO KEY • MOBILE • DRAGGABLE          --
+--========================================================--
 
-local P = game:GetService("Players")
-local TS = game:GetService("TweenService")
-local LP = P.LocalPlayer
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+
+local LP = Players.LocalPlayer
 local PG = LP:WaitForChild("PlayerGui")
 
--- Màu sắc chủ đạo giao diện Zyntrix
-local C = {
-    Bg = Color3.fromRGB(11,14,20), 
-    Cd = Color3.fromRGB(18,23,33), 
-    Tb = Color3.fromRGB(14,18,26), 
-    Cyan = Color3.fromRGB(0,212,255), 
-    Dim = Color3.fromRGB(0,85,120), 
-    On = Color3.fromRGB(0,255,136), 
-    Off = Color3.fromRGB(255,46,99), 
-    Wht = Color3.fromRGB(240,245,255)
+--========================================================--
+-- CONFIG
+--========================================================--
+
+local CONFIG = {
+    Width = 265,
+    Height = 430,
+
+    Background = Color3.fromRGB(8,11,17),
+    Card = Color3.fromRGB(15,20,29),
+    Card2 = Color3.fromRGB(20,26,37),
+
+    Cyan = Color3.fromRGB(0,220,255),
+    Blue = Color3.fromRGB(0,120,255),
+
+    Green = Color3.fromRGB(0,255,140),
+    Red = Color3.fromRGB(255,55,90),
+
+    White = Color3.fromRGB(240,245,255),
+    Gray = Color3.fromRGB(135,145,160),
+
+    Transparency = 0.30
 }
 
-if PG:FindFirstChild("ZyntrixMultiPanel") then PG.ZyntrixMultiPanel:Destroy() end
-local SG = Instance.new("ScreenGui", PG) SG.Name = "ZyntrixMultiPanel" SG.ResetOnSpawn = false
+--========================================================--
+-- CLEAN OLD UI
+--========================================================--
 
-----------------------------------------------------
--- [PHẦN 1: GIAO DIỆN NHẬP KEY SYSTEM]
-----------------------------------------------------
-local KF = Instance.new("Frame", SG)
-KF.Size = UDim2.new(0, 260, 0, 150)
-KF.Position = UDim2.new(0.5, -130, 0.5, -75)
-KF.BackgroundColor3 = C.Bg
-KF.Active = true
-KF.Draggable = true
-Instance.new("UICorner", KF).CornerRadius = UDim.new(0, 10)
-local KFS = Instance.new("UIStroke", KF) KFS.Color = C.Cyan KFS.Thickness = 1
+local Old = PG:FindFirstChild("ZYNTRIX_VIP_PRIME")
+if Old then
+    Old:Destroy()
+end
 
-local KTB = Instance.new("Frame", KF)
-KTB.Size = UDim2.new(1, 0, 0, 35)
-KTB.BackgroundColor3 = C.Tb
-Instance.new("UICorner", KTB).CornerRadius = UDim.new(0, 10)
-Instance.new("Frame", KTB).Size = UDim2.new(1, 0, 0, 10); KTB.Frame.Position = UDim2.new(0, 0, 1, -10); KTB.Frame.BackgroundColor3 = C.Tb; KTB.Frame.BorderSizePixel = 0
-
-local KT = Instance.new("TextLabel", KTB)
-KT.Size = UDim2.new(1, 0, 1, 0)
-KT.BackgroundTransparency = 1
-KT.Text = "ZYNTRIX - SCRIPT"
-KT.TextColor3 = C.Cyan
-KT.Font = Enum.Font.GothamBold
-KT.TextSize = 10
-
--- Ô nhập Key (TextBox)
-local KeyBox = Instance.new("TextBox", KF)
-KeyBox.Size = UDim2.new(1, -30, 0, 35)
-KeyBox.Position = UDim2.new(0, 15, 0, 55)
-KeyBox.BackgroundColor3 = C.Cd
-KeyBox.TextColor3 = C.Wht
-KeyBox.PlaceholderText = "Nhập Key vào đây..."
-KeyBox.Text = ""
-KeyBox.ClearTextOnFocus = false
-KeyBox.Font = Enum.Font.GothamSemibold
-KeyBox.TextSize = 11
-Instance.new("UICorner", KeyBox).CornerRadius = UDim.new(0, 6)
-local KBS = Instance.new("UIStroke", KeyBox) KBS.Color = C.Dim KBS.Thickness = 0.8
-
--- Nút kiểm tra Key
-local CheckBtn = Instance.new("TextButton", KF)
-CheckBtn.Size = UDim2.new(1, -30, 0, 30)
-CheckBtn.Position = UDim2.new(0, 15, 0, 105)
-CheckBtn.BackgroundColor3 = Color3.fromRGB(15, 35, 50)
-CheckBtn.Text = "XÁC NHẬN KEY"
-CheckBtn.TextColor3 = C.Cyan
-CheckBtn.Font = Enum.Font.GothamBold
-CheckBtn.TextSize = 11
-Instance.new("UICorner", CheckBtn).CornerRadius = UDim.new(0, 6)
-local CBS = Instance.new("UIStroke", CheckBtn) CBS.Color = C.Cyan CBS.Thickness = 0.8
-
-----------------------------------------------------
--- [PHẦN 2: PANEL CHỨC NĂNG CHÍNH (ẨN BAN ĐẦU)]
-----------------------------------------------------
-_G.Config = {
-    ["Adidas Sports"] = false, ["Adidas Community"] = false, ["Adidas Aura"] = false, ["Wicked Popular"] = false,
-    ["Elder"] = false, ["Zombie"] = false, ["Mage"] = false, ["Catwalk Glam"] = false, ["Astronaut"] = false,
-    ['Wicked "Dancing Through Life"'] = false, ["Werewolf"] = false, ["Superhero"] = false, ["Toy"] = false,
-    ["No Boundaries"] = false, ["NFL"] = false, ["Amazon Unboxed"] = false, ["Vampire"] = false,
-    ["Ninja"] = false, ["Robot"] = false, ["Levitation"] = false, ["Stylish"] = false, ["Bubbly"] = false, ["Cartoon"] = false
-}
+--========================================================--
+-- PACK DATABASE
+--========================================================--
 
 local PACKS = {
-	["Adidas Sports"] = { WalkAnim = 18537392113, RunAnim  = 18537384940, JumpAnim = 18537380791, FallAnim = 18537367238, SwimIdle = 18537387180, Swim = 18537389531, Animation1 = 18537376492, Animation2 = 18537371272, ClimbAnim = 18537363391 },
-	["Adidas Community"] = { WalkAnim = 122150855457006, RunAnim  = 82598234841035, JumpAnim = 75290611992385, FallAnim = 98600215928904, SwimIdle = 109346520324160, Swim = 133308483266208, Animation1 = 122257458498464, Animation2 = 102357151005774, ClimbAnim = 88763136693023 },
-	["Adidas Aura"] = { WalkAnim = 83842218823011, RunAnim  = 118320322718866, JumpAnim = 109996626521204, FallAnim = 95603166884636, SwimIdle = 94922130551805, Swim = 134530128383903, Animation1 = 110211186840347, Animation2 = 114191137265065, ClimbAnim = 97824616490448 },
-	["Wicked Popular"] = { WalkAnim = 92072849924640, RunAnim = 72301599441680, JumpAnim = 104325245285198, FallAnim = 121152442762481, Animation1 = 118832222982049, ClimbAnim = 131326830509784, SwimIdle = 113199415118199, Swim = 99384245425157, Animation2 = 76049494037641 },
-	["Elder"] = { WalkAnim = 10921111375, RunAnim  = 10921104374, JumpAnim = 10921107367, FallAnim = 10921105765, SwimIdle = 10921110146, Swim = 10921108971, ClimbAnim = 10921100400, Animation1 = 10921101664, Animation2 = 10921102574 },
-	["Zombie"] = { WalkAnim = 10921355261, RunAnim  = 616163682, JumpAnim = 10921351278, FallAnim = 10921350320, SwimIdle = 10921353442, Swim = 10921352344, Animation1 = 10921344533, Animation2 = 10921345304, ClimbAnim = 10921343576 },
-	["Mage"] = { WalkAnim = 10921152678, RunAnim  = 10921148209, JumpAnim = 10921149743, FallAnim = 10921148939, SwimIdle = 10921151661, Swim = 10921150788, ClimbAnim = 10921143404, Animation1 = 10921144709, Animation2 = 10921145797 },
-	["Catwalk Glam"] = { WalkAnim = 109168724482748, RunAnim  = 81024476153754, JumpAnim = 116936326516985, FallAnim = 92294537340807, SwimIdle = 98854111361360, Swim = 134591743181628, ClimbAnim = 119377220967554, Animation1 = 133806214992291, Animation2 = 94970088341563 },
-	["Astronaut"] = { WalkAnim = 10921046031, RunAnim  = 10921039308, JumpAnim = 10921042494, FallAnim = 10921040576, SwimIdle = 10921045006, Swim = 10921044000, ClimbAnim = 10921032124, Animation1 = 10921034824, Animation2 = 10921036806 },
-	['Wicked "Dancing Through Life"'] = { WalkAnim = 73718308412641, RunAnim  = 135515454877967, JumpAnim = 78508480717326, FallAnim = 78147885297412, SwimIdle = 129183123083281, Swim = 110657013921774, ClimbAnim = 129447497744818, Animation1 = 92849173543269, Animation2 = 132238900951109 },
-	["Werewolf"] = { WalkAnim = 10921342074, RunAnim  = 10921336997, JumpAnim = nil, FallAnim = 10921337907, SwimIdle = 10921341319, Swim = 10921340419, ClimbAnim = 10921329322, Animation1 = 10921330408, Animation2 = 10921333667 },
-	["Superhero"] = { WalkAnim = 10921298616, RunAnim  = 10921291831, JumpAnim = 10921294559, FallAnim = 10921293373, SwimIdle = 10921297391, Swim = 10921295495, ClimbAnim = 10921286911, Animation1 = 10921288909, Animation2 = 10921290167 },
-	["Toy"] = { WalkAnim = 10921312010, RunAnim  = 10921306285, JumpAnim = 10921308158, FallAnim = 10921307241, SwimIdle = 10921310341, Swim = 10921309319, ClimbAnim = 10921300839, Animation1 = 10921301576, Animation2 = nil },
-	["No Boundaries"] = { WalkAnim = 18747074203, RunAnim  = 18747070484, JumpAnim = 18747069148, FallAnim = 18747062535, SwimIdle = 18747071682, Swim = 18747073181, ClimbAnim = 18747060903, Animation1 = 18747067405, Animation2 = 18747063918 },
-	["NFL"] = { WalkAnim = 110358958299415, RunAnim  = 117333533048078, JumpAnim = 119846112151352, FallAnim = 129773241321032, SwimIdle = 79090109939093, Swim = 132697394189921, ClimbAnim = 134630013742019, Animation1 = 92080889861410, Animation2 = 74451233229259 },
-	["Amazon Unboxed"] = { WalkAnim = 90478085024465, RunAnim  = 134824450619865, JumpAnim = 121454505477205, FallAnim = 94788218468396, SwimIdle = 129126268464847, Swim = 105962919001086, ClimbAnim = 121145883950231, Animation1 = 98281136301627, Animation2 = nil },
-	["Vampire"] = { WalkAnim = 10921326949, RunAnim  = 10921320299, JumpAnim = 10921322186, FallAnim = 10921321317, SwimIdle = 10921325443, Swim = 10921324408, ClimbAnim = 10921314188, Animation1 = 10921315373, Animation2 = nil },
-	["Ninja"] = { Run=656118852, Walk=656121766, Jump=656117878, Fall=656115606, Swim=656119721, SwimIdle=656121397, Climb=656114359, Idle={656117400,656118341,886742569} },
-	["Robot"] = { Run=616091570, Walk=616095330, Jump=616090535, Fall=616087089, Swim=616092998, SwimIdle=616094091, Climb=616086039, Idle={616088211,616089559,885531463} },
-	["Levitation"] = { Run=616010382, Walk=616013216, Jump=616008936, Fall=616005863, Swim=616011509, SwimIdle=616012453, Climb=616003713, Idle={616006778,616008087,886862142} },
-	["Stylish"] = { Run=616140816, Walk=616146177, Jump=616139451, Fall=616134815, Swim=616143378, SwimIdle=616144772, Climb=616133594, Idle={616136790,616138447,886888594} },
-	["Bubbly"] = { Run=910025107, Walk=910034870, Jump=910016857, Fall=910001910, Swim=910028158, SwimIdle=910030921, Climb=909997997, Idle={910004836,910009958,1018536639} },
-	["Cartoon"] = { Run=742638842, Walk=742640026, Jump=742637942, Fall=742637151, Swim=742639220, SwimIdle=742639812, Climb=742636889, Idle={742637544,742638445,885477856} }
+
+    --====================================================
+    -- ADIDAS
+    --====================================================
+
+    ["Adidas Aura"] = {
+        Walk = 83842218823011,
+        Run = 118320322718866,
+        Jump = 109996626521204,
+        Fall = 95603166884636,
+        Climb = 97824616490448,
+        Swim = 134530128383903,
+        SwimIdle = 94922130551805,
+        Idle1 = 110211186840347,
+        Idle2 = 114191137265065
+    },
+
+    ["Adidas Community"] = {
+        Walk = 122150855457006,
+        Run = 82598234841035,
+        Jump = 75290611992385,
+        Fall = 98600215928904,
+        Climb = 88763136693023,
+        Swim = 133308483266208,
+        SwimIdle = 109346520324160,
+        Idle1 = 122257458498464,
+        Idle2 = 102357151005774
+    },
+
+    ["Adidas Sports"] = {
+        Walk = 18537392113,
+        Run = 18537384940,
+        Jump = 18537380791,
+        Fall = 18537367238,
+        Climb = 18537363391,
+        Swim = 18537389531,
+        SwimIdle = 18537387180,
+        Idle1 = 18537376492,
+        Idle2 = 18537371272
+    },
+
+    --====================================================
+    -- CLASSIC PACKS
+    --====================================================
+
+    ["Astronaut"] = {
+        Walk = 10921046031,
+        Run = 10921039308,
+        Jump = 10921042494,
+        Fall = 10921040576,
+        Climb = 10921032124,
+        Swim = 10921044000,
+        SwimIdle = 10921045006,
+        Idle1 = 10921034824,
+        Idle2 = 10921036806
+    },
+
+    ["Bubbly"] = {
+        Walk = 910034870,
+        Run = 910025107,
+        Jump = 910016857,
+        Fall = 910001910,
+        Climb = 909997997,
+        Swim = 910028158,
+        SwimIdle = 910030921,
+        Idle1 = 910004836,
+        Idle2 = 910009958
+    },
+
+    ["Cartoon"] = {
+        Walk = 742640026,
+        Run = 742638842,
+        Jump = 742637942,
+        Fall = 742637151,
+        Climb = 742636889,
+        Swim = 742639220,
+        SwimIdle = 742639812,
+        Idle1 = 742637544,
+        Idle2 = 742638445
+    },
+
+    ["Catwalk Glam"] = {
+        Walk = 109168724482748,
+        Run = 81024476153754,
+        Jump = 116936326516985,
+        Fall = 92294537340807,
+        Climb = 119377220967554,
+        Swim = 134591743181628,
+        SwimIdle = 98854111361360,
+        Idle1 = 133806214992291,
+        Idle2 = 94970088341563
+    },
+
+    ["Elder"] = {
+        Walk = 10921111375,
+        Run = 10921104374,
+        Jump = 10921107367,
+        Fall = 10921105765,
+        Climb = 10921100400,
+        Swim = 10921108971,
+        SwimIdle = 10921110146,
+        Idle1 = 10921101664,
+        Idle2 = 10921102574
+    },
+
+    ["Levitation"] = {
+        Walk = 616013216,
+        Run = 616010382,
+        Jump = 616008936,
+        Fall = 616005863,
+        Climb = 616003713,
+        Swim = 616011509,
+        SwimIdle = 616012453,
+        Idle1 = 616006778,
+        Idle2 = 616008087
+    },
+
+    ["Mage"] = {
+        Walk = 10921152678,
+        Run = 10921148209,
+        Jump = 10921149743,
+        Fall = 10921148939,
+        Climb = 10921143404,
+        Swim = 10921150788,
+        SwimIdle = 10921151661,
+        Idle1 = 10921144709,
+        Idle2 = 10921145797
+    },
+
+    ["Ninja"] = {
+        Walk = 10921162768,
+        Run = 10921157929,
+        Jump = 10921160088,
+        Fall = 10921159222,
+        Climb = 10921154678,
+        Swim = 10921161002,
+        SwimIdle = 10922757002,
+        Idle1 = 10921155160,
+        Idle2 = 10921155867
+    },
+
+    ["Oldschool"] = {
+        Walk = 10921244891,
+        Run = 10921240218,
+        Jump = 10921242013,
+        Fall = 10921241244,
+        Climb = 10921229866,
+        Swim = 10921243048,
+        SwimIdle = 10921244018,
+        Idle1 = 10921230744,
+        Idle2 = 10921232093
+    },
+
+    ["Robot"] = {
+        Walk = 10921255446,
+        Run = 10921250460,
+        Jump = 10921252123,
+        Fall = 10921251156,
+        Climb = 10921247141,
+        Swim = 10921253767,
+        SwimIdle = 10921253767,
+        Idle1 = 10921248039,
+        Idle2 = 10921248831
+    },
+
+    ["Stylish"] = {
+        Walk = 10921276116,
+        Run = 10921283326,
+        Jump = 10921279832,
+        Fall = 10921278648,
+        Climb = 10921271391,
+        Swim = 10921273958,
+        SwimIdle = 10921272275,
+        Idle1 = 10921278648,
+        Idle2 = 10921279832
+    },
+
+    ["Superhero"] = {
+        Walk = 10921298616,
+        Run = 10921291831,
+        Jump = 10921294559,
+        Fall = 10921293373,
+        Climb = 10921286911,
+        Swim = 10921295495,
+        SwimIdle = 10921297391,
+        Idle1 = 10921288909,
+        Idle2 = 10921290167
+    },
+
+    ["Toy"] = {
+        Walk = 10921312010,
+        Run = 10921306285,
+        Jump = 10921308158,
+        Fall = 10921307241,
+        Climb = 10921300839,
+        Swim = 10921309319,
+        SwimIdle = 10921310341,
+        Idle1 = 10921301576,
+        Idle2 = 10921302207
+    },
+
+    ["Vampire"] = {
+        Walk = 10921326949,
+        Run = 10921320299,
+        Jump = 10921322186,
+        Fall = 10921321317,
+        Climb = 10921314188,
+        Swim = 10921324408,
+        SwimIdle = 10921325443,
+        Idle1 = 10921315373
+    },
+
+    ["Werewolf"] = {
+        Walk = 10921342074,
+        Run = 10921336997,
+        Jump = 10921338912,
+        Fall = 10921337907,
+        Climb = 10921329322,
+        Swim = 10921340419,
+        SwimIdle = 10921341319,
+        Idle1 = 10921330408,
+        Idle2 = 10921333667
+    },
+
+    ["Zombie"] = {
+        Walk = 10921355261,
+        Run = 616163682,
+        Jump = 10921351278,
+        Fall = 10921350320,
+        Climb = 10921343576,
+        Swim = 10921352344,
+        SwimIdle = 10921353442,
+        Idle1 = 10921344533,
+        Idle2 = 10921345304
+    },
+
+    --====================================================
+    -- OTHER OFFICIAL PACKS
+    --====================================================
+
+    ["NFL"] = {
+        Walk = 110358958299415,
+        Run = 117333533048078,
+        Jump = 119846112151352,
+        Fall = 129773241321032,
+        Climb = 134630013742019,
+        Swim = 132697394189921,
+        SwimIdle = 79090109939093,
+        Idle1 = 92080889861410,
+        Idle2 = 74451233229259
+    },
+
+    ["No Boundaries"] = {
+        Walk = 18747074203,
+        Run = 18747070484,
+        Jump = 18747069148,
+        Fall = 18747062535,
+        Climb = 18747060903,
+        Swim = 18747073181,
+        SwimIdle = 18747071682,
+        Idle1 = 18747067405,
+        Idle2 = 18747063918
+    },
+
+    ["Amazon Unboxed"] = {
+        Walk = 90478085024465,
+        Run = 134824450619865,
+        Jump = 121454505477205,
+        Fall = 94788218468396,
+        Climb = 121145883950231,
+        Swim = 105962919001086,
+        SwimIdle = 129126268464847,
+        Idle1 = 98281136301627
+    },
+
+    ["Wicked Popular"] = {
+        Walk = 92072849924640,
+        Run = 72301599441680,
+        Jump = 104325245285198,
+        Fall = 121152442762481,
+        Climb = 131326830509784,
+        Swim = 99384245425157,
+        SwimIdle = 113199415118199,
+        Idle1 = 118832222982049,
+        Idle2 = 76049494037641
+    },
+
+    ['Wicked "Dancing Through Life"'] = {
+        Walk = 73718308412641,
+        Run = 135515454877967,
+        Jump = 78508480717326,
+        Fall = 78147885297412,
+        Climb = 129447497744818,
+        Swim = 110657013921774,
+        SwimIdle = 129183123083281,
+        Idle1 = 92849173543269,
+        Idle2 = 132238900951109
+    },
+
+    --====================================================
+    -- NEW VERIFIED-NAME PACKS
+    --====================================================
+
+    ["Glitch Animation Pack Roblox"] = {
+        Walk = 70532084598346,
+        Run = 133291236719695,
+        Jump = 87784517289295,
+        Fall = 88817521039352,
+        Climb = 99974229390885,
+        Swim = 70788156947773,
+        SwimIdle = 124314548544388,
+        Idle1 = 118195246541519
+    },
+
+    ["Cute Roblox"] = {
+        Walk = 140409718187215,
+        Run = 118375157537412,
+        Jump = 132381016103721,
+        Fall = 77496925287217,
+        Climb = 86318575131600,
+        Swim = 95599821412670,
+        SwimIdle = 132170981486619,
+        Idle1 = 85735421117197,
+        Idle2 = 136463789054516
+    },
+
+    ["Furry Animation Pack Roblox"] = {
+        Walk = 104011441852459,
+        Run = 87770060317862,
+        Jump = 102635582722041,
+        Fall = 137079985547592,
+        Climb = 76660530164497,
+        Swim = 99909547692332,
+        SwimIdle = 82429732905677,
+        Idle1 = 111821292044705,
+        Idle2 = 90705157329932
+    }
 }
 
-local MF = Instance.new("Frame", SG)
-MF.Size = UDim2.new(0,220,0,360)
-MF.Position = UDim2.new(0.5,-110,0.4,-180)
-MF.BackgroundColor3 = C.Bg
-MF.Active = true
-MF.Draggable = true
-MF.Visible = false -- Ẩn đi khi chưa nhập key đúng
-Instance.new("UICorner", MF).CornerRadius = UDim.new(0,10)
-local MS = Instance.new("UIStroke", MF) MS.Color = C.Cyan MS.Thickness = 1
+--========================================================--
+-- GUI
+--========================================================--
 
-local TB = Instance.new("Frame", MF) TB.Size = UDim2.new(1,0,0,35) TB.BackgroundColor3 = C.Tb Instance.new("UICorner", TB).CornerRadius = UDim.new(0,10)
-Instance.new("Frame", TB).Size = UDim2.new(1,0,0,10); TB.Frame.Position = UDim2.new(0,0,1,-10); TB.Frame.BackgroundColor3 = C.Tb; TB.Frame.BorderSizePixel = 0
-local T = Instance.new("TextLabel", TB) T.Size = UDim2.new(1,0,1,0) T.BackgroundTransparency = 1 T.Text = "ZYNTRIX ANIMATION PANEL" T.TextColor3 = C.Cyan T.Font = Enum.Font.GothamBold T.TextSize = 10 T.TextStrokeColor3 = C.Cyan T.TextStrokeTransparency = 0.65
+local GUI = Instance.new("ScreenGui")
+GUI.Name = "ZYNTRIX_VIP_PRIME"
+GUI.ResetOnSpawn = false
+GUI.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+GUI.Parent = PG
 
-local Content = Instance.new("ScrollingFrame", MF) Content.Size = UDim2.new(1,0,1,-35) Content.Position = UDim2.new(0,0,0,35) Content.BackgroundTransparency = 1 Content.ScrollBarThickness = 4 Content.ScrollBarImageColor3 = C.Cyan Content.BorderSizePixel = 0
-local LL = Instance.new("UIListLayout", Content) LL.Padding = UDim.new(0,6) LL.HorizontalAlignment = Enum.HorizontalAlignment.Center
-local PD = Instance.new("UIPadding", Content) PD.PaddingTop = UDim.new(0,8) PD.PaddingBottom = UDim.new(0,8)
+--========================================================--
+-- MAIN FRAME
+--========================================================--
 
-LL:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-    Content.CanvasSize = UDim2.new(0, 0, 0, LL.AbsoluteContentSize.Y + 16)
+local Main = Instance.new("Frame")
+Main.Name = "Main"
+Main.Size = UDim2.new(
+    0,
+    CONFIG.Width,
+    0,
+    CONFIG.Height
+)
+
+Main.Position = UDim2.new(
+    0.5,
+    -CONFIG.Width / 2,
+    0.5,
+    -CONFIG.Height / 2
+)
+
+Main.BackgroundColor3 = CONFIG.Background
+Main.BackgroundTransparency = CONFIG.Transparency
+Main.BorderSizePixel = 0
+Main.Active = true
+Main.Draggable = true
+Main.Parent = GUI
+
+local MainCorner = Instance.new("UICorner")
+MainCorner.CornerRadius = UDim.new(0,12)
+MainCorner.Parent = Main
+
+local MainStroke = Instance.new("UIStroke")
+MainStroke.Color = CONFIG.Cyan
+MainStroke.Thickness = 1.5
+MainStroke.Transparency = 0.1
+MainStroke.Parent = Main
+
+--========================================================--
+-- HEADER
+--========================================================--
+
+local Header = Instance.new("Frame")
+Header.Size = UDim2.new(1,0,0,50)
+Header.BackgroundColor3 = CONFIG.Card
+Header.BackgroundTransparency = 0.05
+Header.BorderSizePixel = 0
+Header.Parent = Main
+
+local HeaderCorner = Instance.new("UICorner")
+HeaderCorner.CornerRadius = UDim.new(0,12)
+HeaderCorner.Parent = Header
+
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(1,-70,0,25)
+Title.Position = UDim2.new(0,14,0,5)
+Title.BackgroundTransparency = 1
+Title.Text = "ZYNTRIX VIP PRIME"
+Title.TextColor3 = CONFIG.Cyan
+Title.Font = Enum.Font.GothamBold
+Title.TextSize = 14
+Title.TextXAlignment = Enum.TextXAlignment.Left
+Title.Parent = Header
+
+local SubTitle = Instance.new("TextLabel")
+SubTitle.Size = UDim2.new(1,-70,0,17)
+SubTitle.Position = UDim2.new(0,15,0,28)
+SubTitle.BackgroundTransparency = 1
+SubTitle.Text = "ANIMATION PACK HUB • NO KEY"
+SubTitle.TextColor3 = CONFIG.Gray
+SubTitle.Font = Enum.Font.GothamMedium
+SubTitle.TextSize = 8
+SubTitle.TextXAlignment = Enum.TextXAlignment.Left
+SubTitle.Parent = Header
+
+local Count = Instance.new("TextLabel")
+Count.Size = UDim2.new(0,55,0,30)
+Count.Position = UDim2.new(1,-62,0,10)
+Count.BackgroundColor3 = Color3.fromRGB(0,35,45)
+Count.TextColor3 = CONFIG.Cyan
+Count.Font = Enum.Font.GothamBold
+Count.TextSize = 9
+Count.Text = tostring(0) .. " PACK"
+Count.Parent = Header
+
+local CountCorner = Instance.new("UICorner")
+CountCorner.CornerRadius = UDim.new(0,6)
+CountCorner.Parent = Count
+
+--========================================================--
+-- SEARCH BOX
+--========================================================--
+
+local Search = Instance.new("TextBox")
+Search.Size = UDim2.new(1,-20,0,32)
+Search.Position = UDim2.new(0,10,0,58)
+Search.BackgroundColor3 = CONFIG.Card
+Search.BorderSizePixel = 0
+Search.PlaceholderText = "🔎  Tìm animation pack..."
+Search.PlaceholderColor3 = CONFIG.Gray
+Search.Text = ""
+Search.TextColor3 = CONFIG.White
+Search.Font = Enum.Font.Gotham
+Search.TextSize = 9
+Search.ClearTextOnFocus = false
+Search.Parent = Main
+
+local SearchCorner = Instance.new("UICorner")
+SearchCorner.CornerRadius = UDim.new(0,7)
+SearchCorner.Parent = Search
+
+local SearchStroke = Instance.new("UIStroke")
+SearchStroke.Color = CONFIG.Blue
+SearchStroke.Transparency = 0.5
+SearchStroke.Parent = Search
+
+--========================================================--
+-- SCROLL
+--========================================================--
+
+local Scroll = Instance.new("ScrollingFrame")
+Scroll.Name = "PackList"
+Scroll.Size = UDim2.new(1,-12,1,-103)
+Scroll.Position = UDim2.new(0,6,0,96)
+Scroll.BackgroundTransparency = 1
+Scroll.BorderSizePixel = 0
+Scroll.ScrollBarThickness = 3
+Scroll.ScrollBarImageColor3 = CONFIG.Cyan
+Scroll.CanvasSize = UDim2.new(0,0,0,0)
+Scroll.Parent = Main
+
+local Layout = Instance.new("UIListLayout")
+Layout.Padding = UDim.new(0,5)
+Layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+Layout.SortOrder = Enum.SortOrder.LayoutOrder
+Layout.Parent = Scroll
+
+local Padding = Instance.new("UIPadding")
+Padding.PaddingTop = UDim.new(0,5)
+Padding.PaddingBottom = UDim.new(0,10)
+Padding.Parent = Scroll
+
+Layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+    Scroll.CanvasSize = UDim2.new(
+        0,
+        0,
+        0,
+        Layout.AbsoluteContentSize.Y + 15
+    )
 end)
 
--- LOGIC ANIMATION PACKS
-local function waitForAnimate(char)
-	for _ = 1, 40 do local a = char:FindFirstChild("Animate") if a and a:FindFirstChild("idle") and a:FindFirstChild("run") and a:FindFirstChild("walk") then return a end task.wait(0.1) end return nil
-end
-local function setAnim(animObj, id) if animObj and id then animObj.AnimationId = "rbxassetid://" .. tostring(id) end end
-local function stopAllTracks(hum) if not hum then return end for _, t in ipairs(hum:GetPlayingAnimationTracks()) do pcall(function() t:Stop(0) end) end end
-local function ensureAnim(folder, name) if not folder then return nil end local a = folder:FindFirstChild(name) if not a then a = Instance.new("Animation") a.Name = name a.Parent = folder end return a end
-local function ensureIdleSlots(idleFolder, n) n = n or 2 for i=1,n do ensureAnim(idleFolder, "Animation" .. i) end end
-local function pick(pack, ...) for i = 1, select("#", ...) do local k = select(i, ...) local v = pack[k] if v ~= nil then return v end end return nil end
+--========================================================--
+-- ANIMATION FUNCTIONS
+--========================================================--
 
-local applying = false
-local function applyPack(packName)
-	if applying then return false end applying = true
-	local pack = PACKS[packName] if not pack then applying = false return false end
-	local char = LP.Character or LP.CharacterAdded:Wait()
-	local animate = waitForAnimate(char) if not animate then applying = false return false end
-	local hum = char:FindFirstChildOfClass("Humanoid") stopAllTracks(hum)
+local CurrentPack = nil
+local Buttons = {}
 
-	local runObj = ensureAnim(animate:FindFirstChild("run"), "RunAnim")
-	local walkObj = ensureAnim(animate:FindFirstChild("walk"), "WalkAnim")
-	local jumpObj = ensureAnim(animate:FindFirstChild("jump"), "JumpAnim")
-	local fallObj = ensureAnim(animate:FindFirstChild("fall"), "FallAnim")
-	local climbObj = ensureAnim(animate:FindFirstChild("climb"), "ClimbAnim")
-	local swimObj = ensureAnim(animate:FindFirstChild("swim"), "Swim")
-	local swimIdleObj = ensureAnim(animate:FindFirstChild("swimidle"), "SwimIdle")
-	local idleFolder = animate:FindFirstChild("idle")
-
-	setAnim(walkObj, pick(pack, "WalkAnim", "Walk"))
-	setAnim(runObj, pick(pack, "RunAnim", "Run"))
-	setAnim(jumpObj, pick(pack, "JumpAnim", "Jump"))
-	setAnim(fallObj, pick(pack, "FallAnim", "Fall"))
-	setAnim(climbObj, pick(pack, "ClimbAnim", "Climb"))
-	setAnim(swimObj, pick(pack, "Swim"))
-	setAnim(swimIdleObj, pick(pack, "SwimIdle") or pick(pack, "Swim"))
-
-	if idleFolder then
-		local a1 = pick(pack, "Animation1") local a2 = pick(pack, "Animation2")
-		if a1 or a2 then
-			ensureIdleSlots(idleFolder, 2) local id1 = a1 or a2 local id2 = a2 or a1 or id1
-			setAnim(idleFolder:FindFirstChild("Animation1"), id1) setAnim(idleFolder:FindFirstChild("Animation2"), id2)
-		elseif pack.Idle and #pack.Idle > 0 then
-			ensureIdleSlots(idleFolder, math.max(2, #pack.Idle))
-			setAnim(idleFolder:FindFirstChild("Animation1"), pack.Idle[1]) setAnim(idleFolder:FindFirstChild("Animation2"), pack.Idle[2] or pack.Idle[1])
-		end
-	end
-	animate.Disabled = true task.wait(0.06) animate.Disabled = false
-	if hum then pcall(function() hum:ChangeState(Enum.HumanoidStateType.Landed) task.wait(0.03) hum:ChangeState(Enum.HumanoidStateType.Running) end) end
-	applying = false return true
-end
-
-local allButtons = {}
-local function updateButtons(activeKey)
-    for k, btnData in pairs(allButtons) do
-        local isCurrent = (k == activeKey)
-        _G.Config[k] = isCurrent
-        btnData.B.Text = isCurrent and "ON" or "OFF"
-        btnData.B.TextColor3 = isCurrent and C.On or C.Off
-        btnData.B.TextStrokeColor3 = isCurrent and C.On or C.Off
-        btnData.BS.Color = isCurrent and C.On or C.Off
-        TS:Create(btnData.B, TweenInfo.new(0.15), {BackgroundColor3 = isCurrent and Color3.fromRGB(15,40,32) or Color3.fromRGB(30,20,25)}):Play()
+local function setAnimation(obj,id)
+    if obj and id then
+        pcall(function()
+            obj.AnimationId = "rbxassetid://" .. tostring(id)
+        end)
     end
 end
 
-local function row(txt, k)
-    local Card = Instance.new("Frame", Content) Card.Size = UDim2.new(1,-16,0,42) Card.BackgroundColor3 = C.Cd Instance.new("UICorner", Card).CornerRadius = UDim.new(0,7)
-    local CS = Instance.new("UIStroke", Card) CS.Color = C.Dim CS.Thickness = 0.8
-    local L = Instance.new("TextLabel", Card) L.Size = UDim2.new(0.65,0,1,0) L.Position = UDim2.new(0.06,0,0,0) B = Instance.new("TextButton", Card)
-    L.BackgroundTransparency = 1 L.Text = txt L.TextColor3 = C.Wht L.Font = Enum.Font.GothamSemibold L.TextSize = 10 L.TextXAlignment = Enum.TextXAlignment.Left
-    B.Size = UDim2.new(0.24,0,0.5,0) B.Position = UDim2.new(0.7,0,0.25,0) B.Font = Enum.Font.GothamBold B.TextSize = 9 Instance.new("UICorner", B).CornerRadius = UDim.new(0,5)
-    local BS = Instance.new("UIStroke", B) BS.Thickness = 0.8
-    
-    allButtons[k] = {B = B, BS = BS}
-    B.MouseButton1Click:Connect(function()
-        if _G.Config[k] then return end
-        local ok = applyPack(k)
-        if ok then updateButtons(k) end
+local function findAnimation(folder,...)
+    if not folder then
+        return nil
+    end
+
+    for i = 1,select("#",...) do
+        local Name = select(i,...)
+        local Obj = folder:FindFirstChild(Name)
+
+        if Obj and Obj:IsA("Animation") then
+            return Obj
+        end
+    end
+
+    return nil
+end
+
+local function makeAnimation(folder,name)
+    if not folder then
+        return nil
+    end
+
+    local Obj = folder:FindFirstChild(name)
+
+    if not Obj then
+        Obj = Instance.new("Animation")
+        Obj.Name = name
+        Obj.Parent = folder
+    end
+
+    return Obj
+end
+
+local function applyFolder(animate,folderName,id,names)
+    if not id then
+        return
+    end
+
+    local Folder = animate:FindFirstChild(folderName)
+
+    if not Folder then
+        return
+    end
+
+    local Obj = findAnimation(Folder,table.unpack(names))
+
+    if not Obj then
+        Obj = makeAnimation(Folder,names[1])
+    end
+
+    setAnimation(Obj,id)
+end
+
+local function applyPack(name)
+
+    local Pack = PACKS[name]
+
+    if not Pack then
+        return false
+    end
+
+    local Character = LP.Character
+
+    if not Character then
+        return false
+    end
+
+    local Animate = Character:FindFirstChild("Animate")
+
+    if not Animate then
+        return false
+    end
+
+    local Humanoid =
+        Character:FindFirstChildOfClass("Humanoid")
+
+    if Humanoid then
+        for _,Track in ipairs(
+            Humanoid:GetPlayingAnimationTracks()
+        ) do
+            pcall(function()
+                Track:Stop(0)
+            end)
+        end
+    end
+
+    -- WALK
+    applyFolder(
+        Animate,
+        "walk",
+        Pack.Walk,
+        {"WalkAnim","walk","RunAnim"}
+    )
+
+    -- RUN
+    applyFolder(
+        Animate,
+        "run",
+        Pack.Run,
+        {"RunAnim","run","WalkAnim"}
+    )
+
+    -- JUMP
+    applyFolder(
+        Animate,
+        "jump",
+        Pack.Jump,
+        {"JumpAnim","jump"}
+    )
+
+    -- FALL
+    applyFolder(
+        Animate,
+        "fall",
+        Pack.Fall,
+        {"FallAnim","fall"}
+    )
+
+    -- CLIMB
+    applyFolder(
+        Animate,
+        "climb",
+        Pack.Climb,
+        {"ClimbAnim","climb"}
+    )
+
+    -- SWIM
+    applyFolder(
+        Animate,
+        "swim",
+        Pack.Swim,
+        {"Swim","SwimAnim","swim"}
+    )
+
+    -- SWIM IDLE
+    applyFolder(
+        Animate,
+        "swimidle",
+        Pack.SwimIdle,
+        {"SwimIdle","SwimIdleAnim","swimidle"}
+    )
+
+    -- IDLE
+    local IdleFolder = Animate:FindFirstChild("idle")
+
+    if IdleFolder then
+
+        local Idle1 =
+            makeAnimation(
+                IdleFolder,
+                "Animation1"
+            )
+
+        local Idle2 =
+            makeAnimation(
+                IdleFolder,
+                "Animation2"
+            )
+
+        if Pack.Idle1 then
+            setAnimation(Idle1,Pack.Idle1)
+        end
+
+        if Pack.Idle2 then
+            setAnimation(Idle2,Pack.Idle2)
+        elseif Pack.Idle1 then
+            setAnimation(Idle2,Pack.Idle1)
+        end
+    end
+
+    -- RESTART ANIMATE
+    pcall(function()
+        Animate.Disabled = true
+        task.wait(0.08)
+        Animate.Disabled = false
+    end)
+
+    CurrentPack = name
+
+    return true
+end
+
+--========================================================--
+-- BUTTON STATE
+--========================================================--
+
+local function refreshButtons()
+
+    for Name,Data in pairs(Buttons) do
+
+        local Active = Name == CurrentPack
+
+        Data.Button.Text =
+            Active and "ON" or "OFF"
+
+        Data.Button.TextColor3 =
+            Active and CONFIG.Green
+            or CONFIG.Red
+
+        Data.Stroke.Color =
+            Active and CONFIG.Green
+            or CONFIG.Red
+
+        Data.CardStroke.Color =
+            Active and CONFIG.Cyan
+            or Color3.fromRGB(35,45,60)
+
+    end
+end
+
+--========================================================--
+-- CREATE PACK BUTTON
+--========================================================--
+
+local function createPackButton(Name)
+
+    local Card = Instance.new("Frame")
+    Card.Name = Name
+    Card.Size = UDim2.new(1,-8,0,43)
+    Card.BackgroundColor3 = CONFIG.Card
+    Card.BorderSizePixel = 0
+    Card.Parent = Scroll
+
+    local Corner = Instance.new("UICorner")
+    Corner.CornerRadius = UDim.new(0,7)
+    Corner.Parent = Card
+
+    local CardStroke = Instance.new("UIStroke")
+    CardStroke.Color = Color3.fromRGB(35,45,60)
+    CardStroke.Thickness = 1
+    CardStroke.Parent = Card
+
+    local Label = Instance.new("TextLabel")
+    Label.Size = UDim2.new(1,-75,1,0)
+    Label.Position = UDim2.new(0,12,0,0)
+    Label.BackgroundTransparency = 1
+    Label.Text = Name
+    Label.TextColor3 = CONFIG.White
+    Label.Font = Enum.Font.GothamSemibold
+    Label.TextSize = 9
+    Label.TextXAlignment = Enum.TextXAlignment.Left
+    Label.Parent = Card
+
+    local Button = Instance.new("TextButton")
+    Button.Size = UDim2.new(0,50,0,27)
+    Button.Position = UDim2.new(1,-58,0.5,-13)
+    Button.BackgroundColor3 = Color3.fromRGB(27,20,25)
+    Button.Text = "OFF"
+    Button.TextColor3 = CONFIG.Red
+    Button.Font = Enum.Font.GothamBold
+    Button.TextSize = 8
+    Button.AutoButtonColor = false
+    Button.Parent = Card
+
+    local ButtonCorner = Instance.new("UICorner")
+    ButtonCorner.CornerRadius = UDim.new(0,6)
+    ButtonCorner.Parent = Button
+
+    local Stroke = Instance.new("UIStroke")
+    Stroke.Color = CONFIG.Red
+    Stroke.Thickness = 1
+    Stroke.Parent = Button
+
+    Buttons[Name] = {
+        Button = Button,
+        Stroke = Stroke,
+        CardStroke = CardStroke
+    }
+
+    Button.MouseButton1Click:Connect(function()
+
+        if CurrentPack == Name then
+            return
+        end
+
+        if applyPack(Name) then
+            refreshButtons()
+        end
+
     end)
 end
 
-local sortedNames = {} for name in pairs(PACKS) do table.insert(sortedNames, name) end
-table.sort(sortedNames, function(a,b) return a:lower() < b:lower() end)
-for _, name in ipairs(sortedNames) do row(name, name) end
-updateButtons("")
+--========================================================--
+-- SORT + LOAD PACKS
+--========================================================--
 
--- Nút HIDE toggle
-local IsPanelVisible = true
-local TG = Instance.new("TextButton", SG) TG.Size = UDim2.new(0,65,0,30) TG.Position = UDim2.new(0,15,0.5,-15) TG.Text = "HIDE" TG.BackgroundColor3 = C.Bg TG.TextColor3 = C.Cyan TG.TextStrokeColor3 = C.Cyan TG.TextStrokeTransparency = 0.7 TG.Font = Enum.Font.GothamBold TG.TextSize = 10 TG.Active = true TG.Draggable = true Instance.new("UICorner", TG).CornerRadius = UDim.new(0,6)
-local TGS = Instance.new("UIStroke", TG) TGS.Color = C.Cyan TGS.Thickness = 1
-TG.Visible = false -- Ẩn nút hide này đi khi chưa mở khóa key
+local Names = {}
 
-TG.MouseButton1Click:Connect(function() 
-    IsPanelVisible = not IsPanelVisible 
-    MF.Visible = IsPanelVisible 
-    TG.Text = IsPanelVisible and "Ẩn" or "Hiện" 
-    TS:Create(TG, TweenInfo.new(0.18), {BackgroundColor3 = IsPanelVisible and C.Bg or Color3.fromRGB(15,35,50), TextColor3 = IsPanelVisible and C.Cyan or C.Wht}):Play() 
+for Name in pairs(PACKS) do
+    table.insert(Names,Name)
+end
+
+table.sort(
+    Names,
+    function(a,b)
+        return a:lower() < b:lower()
+    end
+)
+
+for _,Name in ipairs(Names) do
+    createPackButton(Name)
+end
+
+Count.Text = tostring(#Names) .. " PACK"
+
+refreshButtons()
+
+--========================================================--
+-- SEARCH
+--========================================================--
+
+Search:GetPropertyChangedSignal("Text"):Connect(function()
+
+    local Query =
+        Search.Text:lower()
+
+    for Name,Data in pairs(Buttons) do
+
+        local Show =
+            Query == ""
+            or Name:lower():find(Query,1,true)
+
+        Data.CardStroke.Parent.Visible = Show
+        Data.Button.Parent.Visible = Show
+
+        local Card = Data.Button.Parent
+
+        Card.Visible = Show
+    end
+
 end)
+
+--========================================================--
+-- MINI HIDE BUTTON
+--========================================================--
+
+local Mini = Instance.new("TextButton")
+Mini.Name = "MiniButton"
+Mini.Size = UDim2.new(0,62,0,32)
+Mini.Position = UDim2.new(0,12,0.5,-16)
+Mini.BackgroundColor3 = CONFIG.Background
+Mini.Text = "VIP"
+Mini.TextColor3 = CONFIG.Cyan
+Mini.Font = Enum.Font.GothamBold
+Mini.TextSize = 10
+Mini.Active = true
+Mini.Draggable = true
+Mini.AutoButtonColor = false
+Mini.Parent = GUI
+
+local MiniCorner = Instance.new("UICorner")
+MiniCorner.CornerRadius = UDim.new(0,7)
+MiniCorner.Parent = Mini
+
+local MiniStroke = Instance.new("UIStroke")
+MiniStroke.Color = CONFIG.Cyan
+MiniStroke.Thickness = 1
+MiniStroke.Parent = Mini
+
+Mini.MouseButton1Click:Connect(function()
+
+    Main.Visible = not Main.Visible
+
+    Mini.Text =
+        Main.Visible
+        and "VIP"
+        or "OPEN"
+
+end)
+
+--========================================================--
+-- RESPAWN REAPPLY
+--========================================================--
 
 LP.CharacterAdded:Connect(function()
-    task.wait(0.6)
-    for k, v in pairs(_G.Config) do if v == true then applyPack(k) break end end
+
+    task.wait(1)
+
+    if CurrentPack then
+
+        if applyPack(CurrentPack) then
+            refreshButtons()
+        end
+
+    end
+
 end)
 
-----------------------------------------------------
--- [PHẦN 3: XỬ LÝ SỰ KIỆN CHECK KEY]
-----------------------------------------------------
-CheckBtn.MouseButton1Click:Connect(function()
-    if KeyBox.Text == CORRECT_KEY then
-        -- Đúng Key -> Cho biến mất UI nhập key và kích hoạt Hack Panel
-        CheckBtn.Text = "KEY ĐÚNG! ĐANG MỞ..."
-        CheckBtn.TextColor3 = C.On
-        CBS.Color = C.On
-        task.wait(1)
-        
-        KF:Destroy() -- Xóa giao diện key
-        MF.Visible = true -- Hiện bảng chính
-        TG.Visible = true -- Hiện nút Hiện/Ẩn nhanh
-    else
-        -- Sai Key -> Trừng phạt trực tiếp: Kick thẳng cổ khỏi Server
-        CheckBtn.Text = "SAI KEY! ĐANG KICK..."
-        CheckBtn.TextColor3 = C.Off
-        CBS.Color = C.Off
-        task.wait(0.5)
-        LP:Kick("⚠️ Bạn đã nhập sai mã Key hệ thống! Vui lòng nhắn qua discord của Zyntrix để lấy key đúng để truy cập script.")
+--========================================================--
+-- HEADER DRAG SUPPORT
+--========================================================--
+
+Header.Active = true
+Header.InputBegan:Connect(function(input)
+
+    if input.UserInputType ==
+        Enum.UserInputType.MouseButton1
+        or input.UserInputType ==
+        Enum.UserInputType.Touch then
+
+        Main.Draggable = true
     end
+
 end)
+
+--========================================================--
+-- FINAL
+--========================================================--
+
+print(
+    "[ZYNTRIX VIP PRIME]",
+    "Loaded",
+    #Names,
+    "Animation Packs"
+)

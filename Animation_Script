@@ -39,7 +39,7 @@ local GRAY    = Color3.fromRGB(150,145,160)
 -- IMAGE
 --========================================================--
 
-local IMAGE_ID = "rbxassetid://YOUR_IMAGE_ID"
+local IMAGE_ID = "rbxassetid://1049060234"
 
 --========================================================--
 -- ANTI DUPLICATE
